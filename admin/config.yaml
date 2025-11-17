@@ -1,6 +1,6 @@
 backend:
   name: github
-  repo: yourusername/yourrepo  # CHANGE THIS to your GitHub username/repo name
+  repo: eslammedhat/eslammedhat.github.io
   branch: main
 
 media_folder: "images/uploads"

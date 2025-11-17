@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0a0a0a;
+            color: #e4e4e7;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #fafafa;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .setup-section {
+            background: #18181b;
+            border: 1px solid #27272a;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .setup-section h2 {
+            color: #fafafa;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .setup-section p {
+            color: #a1a1aa;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 0.75rem;
+            background: #0a0a0a;
+            border: 1px solid #27272a;
+            border-radius: 6px;
+            color: #e4e4e7;
+            font-family: inherit;
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #71717a;
+        }
+
+        button {
+            background: #fafafa;
+            color: #0a0a0a;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #e4e4e7;
+        }
+
+        button:disabled {
+            background: #27272a;
+            color: #71717a;
+            cursor: not-allowed;
+        }
+
+        .post-form {
+            background: #18181b;
+            border: 1px solid #27272a;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .post-list {
+            background: #18181b;
+            border: 1px solid #27272a;
+            border-radius: 8px;
+            padding: 2rem;
+        }
+
+        .post-item {
+            border-bottom: 1px solid #27272a;
+            padding: 1rem 0;
+        }
+
+        .post-item:last-child {
+            border-bottom: none;
+        }
+
+        .post-item h3 {
+            color: #fafafa;
+            margin-bottom: 0.5rem;
+        }
+
+        .post-item p {
+            color: #a1a1aa;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .post-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .post-actions button {
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+        }
+
+        .delete-btn {
+            background: #dc2626;
+            color: white;
+        }
+
+        .delete-btn:hover {
+            background: #b91c1c;
+        }
+
+        .status {
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .status.success {
+            background: #166534;
+            color: #bbf7d0;
+            display: block;
+        }
+
+        .status.error {
+            background: #7f1d1d;
+            color: #fecaca;
+            display: block;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        label {
+            display: block;
+            color: #a1a1aa;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        code {
+            background: #27272a;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.9rem;
+        }
+
+        a {
+            color: #fafafa;
+            text-decoration: none;
+        }
+
+        a:hover {
+            color: #a1a1aa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Blog Admin Panel</h1>
+
+        <div id="setup" class="setup-section">
+            <h2>⚙️ Setup Required</h2>
+            <p>To use this admin panel, you need a GitHub Personal Access Token.</p>
+
+            <p><strong>Steps:</strong></p>
+            <ol style="color: #a1a1aa; margin-left: 1.5rem; line-height: 1.8;">
+                <li>Go to <a href="https://github.com/settings/tokens" target="_blank">GitHub Settings → Developer Settings → Personal Access Tokens → Tokens (classic)</a></li>
+                <li>Click "Generate new token (classic)"</li>
+                <li>Give it a name like "Blog CMS"</li>
+                <li>Select scopes: <code>repo</code> (full control of private repositories)</li>
+                <li>Click "Generate token"</li>
+                <li>Copy the token and paste it below</li>
+            </ol>
+
+            <label for="token-input">GitHub Personal Access Token:</label>
+            <input type="password" id="token-input" placeholder="ghp_...">
+
+            <label for="owner-input">GitHub Username:</label>
+            <input type="text" id="owner-input" placeholder="yourusername">
+
+            <label for="repo-input">Repository Name:</label>
+            <input type="text" id="repo-input" placeholder="yourrepo">
+
+            <button onclick="saveConfig()">Save Configuration</button>
+        </div>
+
+        <div id="admin-panel" class="hidden">
+            <div class="status" id="status"></div>
+
+            <div class="post-form">
+                <h2>Add New Post</h2>
+
+                <label for="title">Title:</label>
+                <input type="text" id="title" placeholder="Post title">
+
+                <label for="description">Description:</label>
+                <textarea id="description" rows="3" placeholder="Brief description of the post"></textarea>
+
+                <label for="external-link">External Link (optional):</label>
+                <input type="url" id="external-link" placeholder="https://medium.com/@you/article">
+
+                <label for="tags">Tags (comma-separated):</label>
+                <input type="text" id="tags" placeholder="webdev, tutorial, javascript">
+
+                <button onclick="addPost()">Add Post</button>
+            </div>
+
+            <div class="post-list">
+                <h2>Your Posts</h2>
+                <div id="posts-list">Loading...</div>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 2rem;">
+            <a href="index.html">← Back to Blog</a>
+        </div>
+    </div>
+
+    <script>
+        const CONFIG_KEY = 'blog_config';
+        let config = null;
+
+        function saveConfig() {
+            const token = document.getElementById('token-input').value.trim();
+            const owner = document.getElementById('owner-input').value.trim();
+            const repo = document.getElementById('repo-input').value.trim();
+
+            if (!token || !owner || !repo) {
+                showStatus('Please fill in all fields', 'error');
+                return;
+            }
+
+            config = { token, owner, repo, postsFile: 'posts.json' };
+            localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
+
+            document.getElementById('setup').classList.add('hidden');
+            document.getElementById('admin-panel').classList.remove('hidden');
+
+            loadPosts();
+        }
+
+        function loadConfig() {
+            const saved = localStorage.getItem(CONFIG_KEY);
+            if (saved) {
+                config = JSON.parse(saved);
+                document.getElementById('setup').classList.add('hidden');
+                document.getElementById('admin-panel').classList.remove('hidden');
+                loadPosts();
+            }
+        }
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+            setTimeout(() => {
+                status.style.display = 'none';
+            }, 3000);
+        }
+
+        async function getPostsFile() {
+            try {
+                const response = await fetch(
+                    `https://api.github.com/repos/${config.owner}/${config.repo}/contents/${config.postsFile}`,
+                    {
+                        headers: {
+                            'Authorization': `token ${config.token}`,
+                            'Accept': 'application/vnd.github.v3+json'
+                        }
+                    }
+                );
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const content = atob(data.content);
+                    return {
+                        posts: JSON.parse(content).posts || [],
+                        sha: data.sha
+                    };
+                } else {
+                    return { posts: [], sha: null };
+                }
+            } catch (error) {
+                return { posts: [], sha: null };
+            }
+        }
+
+        async function savePostsFile(posts, sha) {
+            const content = JSON.stringify({ posts }, null, 2);
+            const encodedContent = btoa(unescape(encodeURIComponent(content)));
+
+            const body = {
+                message: sha ? 'Update posts' : 'Create posts file',
+                content: encodedContent
+            };
+
+            if (sha) {
+                body.sha = sha;
+            }
+
+            const response = await fetch(
+                `https://api.github.com/repos/${config.owner}/${config.repo}/contents/${config.postsFile}`,
+                {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${config.token}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(body)
+                }
+            );
+
+            return response.ok;
+        }
+
+        async function loadPosts() {
+            const { posts } = await getPostsFile();
+            const list = document.getElementById('posts-list');
+
+            if (posts.length === 0) {
+                list.innerHTML = '<p style="color: #71717a;">No posts yet. Add your first post above!</p>';
+                return;
+            }
+
+            posts.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            list.innerHTML = posts.map((post, index) => `
+                <div class="post-item">
+                    <h3>${post.title}</h3>
+                    <p>${post.description}</p>
+                    <p style="color: #71717a; font-size: 0.85rem;">${new Date(post.date).toLocaleDateString()}</p>
+                    ${post.external_link ? `<p style="font-size: 0.85rem;"><a href="${post.external_link}" target="_blank">${post.external_link}</a></p>` : ''}
+                    <div class="post-actions">
+                        <button class="delete-btn" onclick="deletePost(${index})">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function addPost() {
+            const title = document.getElementById('title').value.trim();
+            const description = document.getElementById('description').value.trim();
+            const externalLink = document.getElementById('external-link').value.trim();
+            const tagsInput = document.getElementById('tags').value.trim();
+
+            if (!title || !description) {
+                showStatus('Title and description are required', 'error');
+                return;
+            }
+
+            const tags = tagsInput ? tagsInput.split(',').map(t => t.trim()) : [];
+
+            const newPost = {
+                title,
+                description,
+                external_link: externalLink || null,
+                tags,
+                date: new Date().toISOString()
+            };
+
+            const { posts, sha } = await getPostsFile();
+            posts.push(newPost);
+
+            const success = await savePostsFile(posts, sha);
+
+            if (success) {
+                showStatus('Post added successfully!', 'success');
+                document.getElementById('title').value = '';
+                document.getElementById('description').value = '';
+                document.getElementById('external-link').value = '';
+                document.getElementById('tags').value = '';
+                loadPosts();
+            } else {
+                showStatus('Failed to add post. Check your token and permissions.', 'error');
+            }
+        }
+
+        async function deletePost(index) {
+            if (!confirm('Are you sure you want to delete this post?')) return;
+
+            const { posts, sha } = await getPostsFile();
+            posts.splice(index, 1);
+
+            const success = await savePostsFile(posts, sha);
+
+            if (success) {
+                showStatus('Post deleted successfully!', 'success');
+                loadPosts();
+            } else {
+                showStatus('Failed to delete post', 'error');
+            }
+        }
+
+        loadConfig();
+    </script>
+</body>
+</html>

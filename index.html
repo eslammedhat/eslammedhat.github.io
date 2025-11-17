@@ -146,6 +146,12 @@
             color: #fafafa;
         }
 
+        .loading {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #71717a;
+        }
+
         @media (max-width: 768px) {
             header {
                 padding: 3rem 1.5rem 1.5rem;
@@ -173,78 +179,103 @@
 
     <nav>
         <ul>
-            <li><a href="#home">Home</a></li>
+            <li><a href="/">Home</a></li>
             <li><a href="#about">About</a></li>
-            <li><a href="#archive">Archive</a></li>
+            <li><a href="admin.html">Admin</a></li>
         </ul>
     </nav>
 
-    <div class="container">
-        <article class="blog-post">
-            <h2><a href="#">Getting Started with Web Development</a></h2>
-            <div class="post-meta">
-                November 15, 2025 · 5 min read
-            </div>
-            <p class="post-excerpt">
-                Web development has never been more accessible. In this post, I explore the essential tools and technologies you need to start building modern websites. From HTML and CSS fundamentals to JavaScript frameworks, we'll cover everything you need to know to begin your journey.
-            </p>
-            <a href="#" class="read-more">Read more →</a>
-            <div class="tags">
-                <span class="tag">#webdev</span>
-                <span class="tag">#tutorial</span>
-                <span class="tag">#beginner</span>
-            </div>
-        </article>
-
-        <article class="blog-post">
-            <h2><a href="#">The Power of Minimalist Design</a></h2>
-            <div class="post-meta">
-                November 10, 2025 · 4 min read
-            </div>
-            <p class="post-excerpt">
-                Less is more. Discover how minimalist design principles can transform your projects and create better user experiences. We'll look at real-world examples and practical tips for implementing clean, focused designs that users love.
-            </p>
-            <a href="#" class="read-more">Read more →</a>
-            <div class="tags">
-                <span class="tag">#design</span>
-                <span class="tag">#minimalism</span>
-            </div>
-        </article>
-
-        <article class="blog-post">
-            <h2><a href="#">My Journey into Open Source</a></h2>
-            <div class="post-meta">
-                November 5, 2025 · 6 min read
-            </div>
-            <p class="post-excerpt">
-                Contributing to open source changed my career. In this personal story, I share how I went from being intimidated by GitHub to becoming an active contributor in several projects. Learn from my mistakes and successes as you start your own open source journey.
-            </p>
-            <a href="#" class="read-more">Read more →</a>
-            <div class="tags">
-                <span class="tag">#opensource</span>
-                <span class="tag">#career</span>
-            </div>
-        </article>
-
-        <article class="blog-post">
-            <h2><a href="#">10 Productivity Tips for Developers</a></h2>
-            <div class="post-meta">
-                October 28, 2025 · 7 min read
-            </div>
-            <p class="post-excerpt">
-                Time is precious. These ten productivity tips have helped me become a more efficient developer and maintain a healthy work-life balance. From keyboard shortcuts to workflow automation, discover practical strategies you can implement today.
-            </p>
-            <a href="#" class="read-more">Read more →</a>
-            <div class="tags">
-                <span class="tag">#productivity</span>
-                <span class="tag">#tips</span>
-            </div>
-        </article>
+    <div class="container" id="posts-container">
+        <div class="loading">Loading posts...</div>
     </div>
 
     <footer>
         <p>© 2025 My Blog</p>
-        <p><a href="https://github.com/eslammedhat">GitHub</a> · <a href="mailto:eslam.medhat1993@gmail.com">Email</a></p>
+        <p><a href="https://github.com/eslammedhat">GitHub</a> · <a href="mailto:your.email@example.com">Email</a></p>
     </footer>
+
+    <script>
+        const CONFIG = {
+            owner: 'eslammedhat',  // CHANGE THIS
+            repo: 'eslammedhat.github.io',       // CHANGE THIS
+            postsFile: 'posts.json'
+        };
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        async function loadPosts() {
+            const container = document.getElementById('posts-container');
+
+            try {
+                const response = await fetch(`https://raw.githubusercontent.com/${CONFIG.owner}/${CONFIG.repo}/main/${CONFIG.postsFile}`);
+
+                if (!response.ok) {
+                    throw new Error('Posts file not found');
+                }
+
+                const data = await response.json();
+                const posts = data.posts || [];
+
+                if (posts.length === 0) {
+                    container.innerHTML = `
+                        <div class="blog-post">
+                            <h2>No posts yet</h2>
+                            <p class="post-excerpt">
+                                Visit <a href="admin.html" style="color: #fafafa;">the admin panel</a> to create your first post!
+                            </p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Sort by date (newest first)
+                posts.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                // Render posts
+                container.innerHTML = posts.map(post => `
+                    <article class="blog-post">
+                        <h2>${post.external_link ? `<a href="${post.external_link}" target="_blank">${post.title}</a>` : post.title}</h2>
+                        <div class="post-meta">
+                            ${formatDate(post.date)}
+                        </div>
+                        <p class="post-excerpt">
+                            ${post.description}
+                        </p>
+                        ${post.external_link ? `<a href="${post.external_link}" target="_blank" class="read-more">Read more →</a>` : ''}
+                        ${post.tags && post.tags.length > 0 ? `
+                            <div class="tags">
+                                ${post.tags.map(tag => `<span class="tag">#${tag}</span>`).join('')}
+                            </div>
+                        ` : ''}
+                    </article>
+                `).join('');
+
+            } catch (error) {
+                container.innerHTML = `
+                    <article class="blog-post">
+                        <h2>Welcome to Your Blog!</h2>
+                        <div class="post-meta">
+                            November 18, 2025
+                        </div>
+                        <p class="post-excerpt">
+                            Your blog is ready! Create a <code style="background: #27272a; padding: 0.2rem 0.4rem; border-radius: 3px;">posts.json</code> file in your repository, then visit <a href="admin.html" style="color: #fafafa;">the admin panel</a> to start adding posts.
+                        </p>
+                        <div class="tags">
+                            <span class="tag">#welcome</span>
+                        </div>
+                    </article>
+                `;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadPosts);
+    </script>
 </body>
 </html>

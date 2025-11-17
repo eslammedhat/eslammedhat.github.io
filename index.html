@@ -104,6 +104,62 @@
             margin-bottom: 1rem;
         }
 
+        .post-content {
+            color: #a1a1aa;
+            line-height: 1.8;
+        }
+
+        .post-content h3 {
+            color: #fafafa;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            font-size: 1.3rem;
+        }
+
+        .post-content h4 {
+            color: #fafafa;
+            margin-top: 1.2rem;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .post-content p {
+            margin-bottom: 1rem;
+        }
+
+        .post-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+        }
+
+        .post-content ul, .post-content ol {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .post-content code {
+            background: #27272a;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.9rem;
+        }
+
+        .post-content pre {
+            background: #18181b;
+            border: 1px solid #27272a;
+            border-radius: 6px;
+            padding: 1rem;
+            overflow-x: auto;
+            margin-bottom: 1rem;
+        }
+
+        .post-content pre code {
+            background: none;
+            padding: 0;
+        }
+
         .read-more {
             color: #fafafa;
             text-decoration: none;
@@ -191,13 +247,14 @@
 
     <footer>
         <p>© 2025 My Blog</p>
-        <p><a href="https://github.com/eslammedhat">GitHub</a> · <a href="mailto:your.email@example.com">Email</a></p>
+        <p><a href="https://github.com/yourusername">GitHub</a> · <a href="mailto:your.email@example.com">Email</a></p>
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
         const CONFIG = {
             owner: 'eslammedhat',  // CHANGE THIS
-            repo: 'eslammedhat.github.io',       // CHANGE THIS
+            repo: 'eslammedhat,github.io',       // CHANGE THIS
             postsFile: 'posts.json'
         };
 
@@ -235,27 +292,28 @@
                     return;
                 }
 
-                // Sort by date (newest first)
                 posts.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-                // Render posts
-                container.innerHTML = posts.map(post => `
-                    <article class="blog-post">
-                        <h2>${post.external_link ? `<a href="${post.external_link}" target="_blank">${post.title}</a>` : post.title}</h2>
-                        <div class="post-meta">
-                            ${formatDate(post.date)}
-                        </div>
-                        <p class="post-excerpt">
-                            ${post.description}
-                        </p>
-                        ${post.external_link ? `<a href="${post.external_link}" target="_blank" class="read-more">Read more →</a>` : ''}
-                        ${post.tags && post.tags.length > 0 ? `
-                            <div class="tags">
-                                ${post.tags.map(tag => `<span class="tag">#${tag}</span>`).join('')}
+                container.innerHTML = posts.map(post => {
+                    const contentHtml = post.content ? marked.parse(post.content) : '';
+
+                    return `
+                        <article class="blog-post">
+                            <h2>${post.external_link ? `<a href="${post.external_link}" target="_blank">${post.title}</a>` : post.title}</h2>
+                            <div class="post-meta">
+                                ${formatDate(post.date)}
                             </div>
-                        ` : ''}
-                    </article>
-                `).join('');
+                            ${post.description ? `<p class="post-excerpt">${post.description}</p>` : ''}
+                            ${contentHtml ? `<div class="post-content">${contentHtml}</div>` : ''}
+                            ${post.external_link ? `<a href="${post.external_link}" target="_blank" class="read-more">Read more →</a>` : ''}
+                            ${post.tags && post.tags.length > 0 ? `
+                                <div class="tags">
+                                    ${post.tags.map(tag => `<span class="tag">#${tag}</span>`).join('')}
+                                </div>
+                            ` : ''}
+                        </article>
+                    `;
+                }).join('');
 
             } catch (error) {
                 container.innerHTML = `

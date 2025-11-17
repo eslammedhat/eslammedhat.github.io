@@ -1,0 +1,21 @@
+backend:
+  name: github
+  repo: yourusername/yourrepo  # CHANGE THIS to your GitHub username/repo name
+  branch: main
+
+media_folder: "images/uploads"
+public_folder: "/images/uploads"
+
+collections:
+  - name: "posts"
+    label: "Blog Posts"
+    folder: "content/posts"
+    create: true
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
+    fields:
+      - {label: "Title", name: "title", widget: "string"}
+      - {label: "Publish Date", name: "date", widget: "datetime"}
+      - {label: "Description", name: "description", widget: "text"}
+      - {label: "External Link", name: "external_link", widget: "string", required: false}
+      - {label: "Tags", name: "tags", widget: "string", required: false, hint: "Comma-separated tags"}
+      - {label: "Body", name: "body", widget: "markdown", required: false}

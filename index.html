@@ -253,10 +253,13 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
         const CONFIG = {
-            owner: 'eslammedhat',  // CHANGE THIS
-            repo: 'eslammedhat.github.io',       // CHANGE THIS
+            owner: 'yourusername',  // CHANGE THIS to your GitHub username
+            repo: 'yourrepo',       // CHANGE THIS to your repository name
             postsFile: 'posts.json'
         };
+
+        // Add cache busting to always get fresh data
+        const cacheBuster = '?t=' + new Date().getTime();
 
         function formatDate(dateString) {
             const date = new Date(dateString);
@@ -271,7 +274,7 @@
             const container = document.getElementById('posts-container');
 
             try {
-                const response = await fetch(`https://raw.githubusercontent.com/${CONFIG.owner}/${CONFIG.repo}/main/${CONFIG.postsFile}`);
+                const response = await fetch(`https://raw.githubusercontent.com/${CONFIG.owner}/${CONFIG.repo}/main/${CONFIG.postsFile}${cacheBuster}`);
 
                 if (!response.ok) {
                     throw new Error('Posts file not found');
@@ -294,18 +297,15 @@
 
                 posts.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-                container.innerHTML = posts.map(post => {
-                    const contentHtml = post.content ? marked.parse(post.content) : '';
+                container.innerHTML = posts.map((post, index) => {
+                    const postSlug = post.slug || post.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
                     return `
                         <article class="blog-post">
-                            <h2>${post.external_link ? `<a href="${post.external_link}" target="_blank">${post.title}</a>` : post.title}</h2>
+                            <h2><a href="posts/${postSlug}.html">${post.title}</a></h2>
                             <div class="post-meta">
                                 ${formatDate(post.date)}
                             </div>
-                            ${post.description ? `<p class="post-excerpt">${post.description}</p>` : ''}
-                            ${contentHtml ? `<div class="post-content">${contentHtml}</div>` : ''}
-                            ${post.external_link ? `<a href="${post.external_link}" target="_blank" class="read-more">Read more →</a>` : ''}
                             ${post.tags && post.tags.length > 0 ? `
                                 <div class="tags">
                                     ${post.tags.map(tag => `<span class="tag">#${tag}</span>`).join('')}

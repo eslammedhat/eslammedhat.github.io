@@ -453,7 +453,7 @@ code block
     <script>
         const CONFIG_KEY = 'blog_config';
         let config = null;
-        let editingIndex = null;
+        let editingSlug = null;
 
         function saveConfig() {
             const token = document.getElementById('token-input').value.trim();
@@ -465,7 +465,7 @@ code block
                 return;
             }
 
-            config = { token, owner, repo, postsFile: 'posts.json' };
+            config = { token, owner, repo };
             localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
 
             document.getElementById('setup').classList.add('hidden');
@@ -551,7 +551,6 @@ code block
                     );
 
                     if (response.ok) {
-                        const data = await response.json();
                         const imageUrl = `https://raw.githubusercontent.com/${config.owner}/${config.repo}/main/${fileName}`;
 
                         const textarea = document.getElementById('content');
@@ -577,350 +576,74 @@ code block
             event.target.value = '';
         }
 
-        async function getPostsFile() {
-            try {
-                const response = await fetch(
-                    `https://api.github.com/repos/${config.owner}/${config.repo}/contents/${config.postsFile}`,
-                    {
-                        headers: {
-                            'Authorization': `token ${config.token}`,
-                            'Accept': 'application/vnd.github.v3+json'
-                        }
-                    }
-                );
-
-                if (response.ok) {
-                    const data = await response.json();
-                    const content = atob(data.content);
-                    return {
-                        posts: JSON.parse(content).posts || [],
-                        sha: data.sha
-                    };
-                } else {
-                    return { posts: [], sha: null };
-                }
-            } catch (error) {
-                return { posts: [], sha: null };
-            }
-        }
-
-        async function savePostsFile(posts, sha) {
-            const content = JSON.stringify({ posts }, null, 2);
-            const encodedContent = btoa(unescape(encodeURIComponent(content)));
-
-            const body = {
-                message: sha ? 'Update posts' : 'Create posts file',
-                content: encodedContent
-            };
-
-            if (sha) {
-                body.sha = sha;
-            }
-
-            const response = await fetch(
-                `https://api.github.com/repos/${config.owner}/${config.repo}/contents/${config.postsFile}`,
-                {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `token ${config.token}`,
-                        'Accept': 'application/vnd.github.v3+json',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(body)
-                }
-            );
-
-            return response.ok;
-        }
-
         function generateSlug(title) {
             return title.toLowerCase()
                 .replace(/[^a-z0-9]+/g, '-')
                 .replace(/(^-|-$)/g, '');
         }
 
-        function generatePostHTML(post, postSlug) {
-            const contentHtml = post.content ? marked.parse(post.content) : '';
+        function generatePostHTML(postData) {
+            const contentHtml = postData.content ? marked.parse(postData.content) : '';
+            const tagsString = postData.tags && postData.tags.length > 0 ? postData.tags.join(',') : '';
 
             return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${post.title} - My Blog</title>
+    <title>${postData.title} - My Blog</title>
+    <meta name="post-date" content="${postData.date}" data-date="${postData.date}">
+    <meta name="post-tags" content="${tagsString}" data-tags="${tagsString}">
+    <meta name="post-description" content="${postData.description || ''}" data-description="${postData.description || ''}">
+    <meta name="post-external-link" content="${postData.external_link || ''}" data-external-link="${postData.external_link || ''}">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            line-height: 1.7;
-            color: #e4e4e7;
-            background: #0a0a0a;
-        }
-
-        header {
-            padding: 4rem 2rem 2rem;
-            text-align: center;
-            border-bottom: 1px solid #27272a;
-        }
-
-        header h1 {
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-            color: #fafafa;
-        }
-
-        header p {
-            font-size: 1rem;
-            color: #a1a1aa;
-        }
-
-        nav {
-            padding: 2rem;
-            text-align: center;
-        }
-
-        nav ul {
-            list-style: none;
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
-            flex-wrap: wrap;
-        }
-
-        nav a {
-            text-decoration: none;
-            color: #a1a1aa;
-            font-size: 0.95rem;
-            transition: color 0.2s;
-        }
-
-        nav a:hover {
-            color: #fafafa;
-        }
-
-        .container {
-            max-width: 700px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-
-        .post-header {
-            margin-bottom: 2rem;
-            padding-bottom: 2rem;
-            border-bottom: 1px solid #27272a;
-        }
-
-        .post-header h1 {
-            color: #fafafa;
-            font-size: 2rem;
-            margin-bottom: 1rem;
-            font-weight: 600;
-        }
-
-        .post-meta {
-            color: #71717a;
-            font-size: 0.9rem;
-            margin-bottom: 1rem;
-        }
-
-        .post-description {
-            color: #a1a1aa;
-            font-size: 1.05rem;
-            margin-bottom: 1rem;
-        }
-
-        .external-link-banner {
-            background: #18181b;
-            border: 1px solid #27272a;
-            border-radius: 8px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            text-align: center;
-        }
-
-        .external-link-banner p {
-            color: #a1a1aa;
-            margin-bottom: 1rem;
-        }
-
-        .external-link-banner a {
-            display: inline-block;
-            background: #fafafa;
-            color: #0a0a0a;
-            padding: 0.75rem 1.5rem;
-            border-radius: 6px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: background 0.2s;
-        }
-
-        .external-link-banner a:hover {
-            background: #e4e4e7;
-        }
-
-        .post-content {
-            color: #a1a1aa;
-            line-height: 1.8;
-            margin-bottom: 2rem;
-        }
-
-        .post-content h1,
-        .post-content h2,
-        .post-content h3,
-        .post-content h4 {
-            color: #fafafa;
-            margin-top: 2rem;
-            margin-bottom: 1rem;
-        }
-
-        .post-content h1 {
-            font-size: 1.8rem;
-            border-bottom: 1px solid #27272a;
-            padding-bottom: 0.5rem;
-        }
-
-        .post-content h2 {
-            font-size: 1.5rem;
-        }
-
-        .post-content h3 {
-            font-size: 1.3rem;
-        }
-
-        .post-content h4 {
-            font-size: 1.1rem;
-        }
-
-        .post-content p {
-            margin-bottom: 1.5rem;
-        }
-
-        .post-content img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 8px;
-            margin: 2rem 0;
-        }
-
-        .post-content ul, .post-content ol {
-            margin-left: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .post-content li {
-            margin-bottom: 0.5rem;
-        }
-
-        .post-content code {
-            background: #27272a;
-            padding: 0.2rem 0.4rem;
-            border-radius: 3px;
-            font-size: 0.9rem;
-            font-family: 'Courier New', monospace;
-        }
-
-        .post-content pre {
-            background: #18181b;
-            border: 1px solid #27272a;
-            border-radius: 6px;
-            padding: 1.5rem;
-            overflow-x: auto;
-            margin-bottom: 1.5rem;
-        }
-
-        .post-content pre code {
-            background: none;
-            padding: 0;
-        }
-
-        .post-content blockquote {
-            border-left: 3px solid #27272a;
-            padding-left: 1.5rem;
-            margin: 1.5rem 0;
-            color: #71717a;
-            font-style: italic;
-        }
-
-        .post-content a {
-            color: #fafafa;
-            text-decoration: underline;
-        }
-
-        .post-content a:hover {
-            color: #a1a1aa;
-        }
-
-        .tags {
-            display: flex;
-            gap: 0.75rem;
-            margin-top: 2rem;
-            flex-wrap: wrap;
-            padding-top: 2rem;
-            border-top: 1px solid #27272a;
-        }
-
-        .tag {
-            color: #71717a;
-            font-size: 0.85rem;
-        }
-
-        .back-link {
-            display: inline-block;
-            color: #a1a1aa;
-            text-decoration: none;
-            margin-bottom: 2rem;
-            transition: color 0.2s;
-        }
-
-        .back-link:hover {
-            color: #fafafa;
-        }
-
-        footer {
-            text-align: center;
-            padding: 3rem 2rem;
-            margin-top: 2rem;
-            border-top: 1px solid #27272a;
-            color: #71717a;
-            font-size: 0.9rem;
-        }
-
-        footer a {
-            color: #a1a1aa;
-            text-decoration: none;
-            transition: color 0.2s;
-        }
-
-        footer a:hover {
-            color: #fafafa;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; line-height: 1.7; color: #e4e4e7; background: #0a0a0a; }
+        header { padding: 4rem 2rem 2rem; text-align: center; border-bottom: 1px solid #27272a; }
+        header h1 { font-size: 2rem; margin-bottom: 0.5rem; font-weight: 600; color: #fafafa; }
+        header p { font-size: 1rem; color: #a1a1aa; }
+        nav { padding: 2rem; text-align: center; }
+        nav ul { list-style: none; display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; }
+        nav a { text-decoration: none; color: #a1a1aa; font-size: 0.95rem; transition: color 0.2s; }
+        nav a:hover { color: #fafafa; }
+        .container { max-width: 700px; margin: 0 auto; padding: 2rem; }
+        .post-header { margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid #27272a; }
+        .post-header h1 { color: #fafafa; font-size: 2rem; margin-bottom: 1rem; font-weight: 600; }
+        .post-meta { color: #71717a; font-size: 0.9rem; margin-bottom: 1rem; }
+        .post-description { color: #a1a1aa; font-size: 1.05rem; margin-bottom: 1rem; }
+        .external-link-banner { background: #18181b; border: 1px solid #27272a; border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem; text-align: center; }
+        .external-link-banner p { color: #a1a1aa; margin-bottom: 1rem; }
+        .external-link-banner a { display: inline-block; background: #fafafa; color: #0a0a0a; padding: 0.75rem 1.5rem; border-radius: 6px; text-decoration: none; font-weight: 600; transition: background 0.2s; }
+        .external-link-banner a:hover { background: #e4e4e7; }
+        .post-content { color: #a1a1aa; line-height: 1.8; margin-bottom: 2rem; }
+        .post-content h1, .post-content h2, .post-content h3, .post-content h4 { color: #fafafa; margin-top: 2rem; margin-bottom: 1rem; }
+        .post-content h1 { font-size: 1.8rem; border-bottom: 1px solid #27272a; padding-bottom: 0.5rem; }
+        .post-content h2 { font-size: 1.5rem; }
+        .post-content h3 { font-size: 1.3rem; }
+        .post-content h4 { font-size: 1.1rem; }
+        .post-content p { margin-bottom: 1.5rem; }
+        .post-content img { max-width: 100%; height: auto; border-radius: 8px; margin: 2rem 0; }
+        .post-content ul, .post-content ol { margin-left: 1.5rem; margin-bottom: 1.5rem; }
+        .post-content li { margin-bottom: 0.5rem; }
+        .post-content code { background: #27272a; padding: 0.2rem 0.4rem; border-radius: 3px; font-size: 0.9rem; font-family: 'Courier New', monospace; }
+        .post-content pre { background: #18181b; border: 1px solid #27272a; border-radius: 6px; padding: 1.5rem; overflow-x: auto; margin-bottom: 1.5rem; }
+        .post-content pre code { background: none; padding: 0; }
+        .post-content blockquote { border-left: 3px solid #27272a; padding-left: 1.5rem; margin: 1.5rem 0; color: #71717a; font-style: italic; }
+        .post-content a { color: #fafafa; text-decoration: underline; }
+        .post-content a:hover { color: #a1a1aa; }
+        .tags { display: flex; gap: 0.75rem; margin-top: 2rem; flex-wrap: wrap; padding-top: 2rem; border-top: 1px solid #27272a; }
+        .tag { color: #71717a; font-size: 0.85rem; }
+        .back-link { display: inline-block; color: #a1a1aa; text-decoration: none; margin-bottom: 2rem; transition: color 0.2s; }
+        .back-link:hover { color: #fafafa; }
+        footer { text-align: center; padding: 3rem 2rem; margin-top: 2rem; border-top: 1px solid #27272a; color: #71717a; font-size: 0.9rem; }
+        footer a { color: #a1a1aa; text-decoration: none; transition: color 0.2s; }
+        footer a:hover { color: #fafafa; }
         @media (max-width: 768px) {
-            header {
-                padding: 3rem 1.5rem 1.5rem;
-            }
-
-            header h1 {
-                font-size: 1.75rem;
-            }
-
-            .container {
-                padding: 1.5rem;
-            }
-
-            .post-header h1 {
-                font-size: 1.75rem;
-            }
-
-            nav ul {
-                gap: 1.5rem;
-            }
+            header { padding: 3rem 1.5rem 1.5rem; }
+            header h1 { font-size: 1.75rem; }
+            .container { padding: 1.5rem; }
+            .post-header h1 { font-size: 1.75rem; }
+            nav ul { gap: 1.5rem; }
         }
     </style>
 </head>
@@ -929,7 +652,6 @@ code block
         <h1>My Blog</h1>
         <p>Thoughts and ideas</p>
     </header>
-
     <nav>
         <ul>
             <li><a href="../index.html">Home</a></li>
@@ -937,192 +659,32 @@ code block
             <li><a href="../admin.html">Admin</a></li>
         </ul>
     </nav>
-
     <div class="container">
         <a href="../index.html" class="back-link">← Back to home</a>
-
         <div class="post-header">
-            <h1>${post.title}</h1>
-            <div class="post-meta">
-                ${new Date(post.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
-            </div>
-            ${post.description ? `<p class="post-description">${post.description}</p>` : ''}
+            <h1>${postData.title}</h1>
+            <div class="post-meta">${new Date(postData.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+            ${postData.description ? `<p class="post-description">${postData.description}</p>` : ''}
         </div>
-
-        ${post.external_link ? `
+        ${postData.external_link ? `
             <div class="external-link-banner">
                 <p>This post was originally published elsewhere.</p>
-                <a href="${post.external_link}" target="_blank">Read on external site →</a>
+                <a href="${postData.external_link}" target="_blank">Read on external site →</a>
             </div>
         ` : ''}
-
         ${contentHtml ? `<div class="post-content">${contentHtml}</div>` : ''}
-
-        ${post.tags && post.tags.length > 0 ? `
+        ${postData.tags && postData.tags.length > 0 ? `
             <div class="tags">
-                ${post.tags.map(tag => `<span class="tag">#${tag}</span>`).join('')}
+                ${postData.tags.map(tag => `<span class="tag">#${tag}</span>`).join('')}
             </div>
         ` : ''}
     </div>
-
     <footer>
         <p>© 2025 My Blog</p>
         <p><a href="https://github.com/yourusername">GitHub</a> · <a href="mailto:your.email@example.com">Email</a></p>
     </footer>
 </body>
 </html>`;
-        }
-
-        async function ensurePostsFolderExists() {
-            try {
-                // Check if posts folder exists by trying to get its contents
-                const response = await fetch(
-                    `https://api.github.com/repos/${config.owner}/${config.repo}/contents/posts`,
-                    {
-                        headers: {
-                            'Authorization': `token ${config.token}`,
-                            'Accept': 'application/vnd.github.v3+json'
-                        }
-                    }
-                );
-
-                if (!response.ok) {
-                    // Folder doesn't exist, create a .gitkeep file to initialize it
-                    await fetch(
-                        `https://api.github.com/repos/${config.owner}/${config.repo}/contents/posts/.gitkeep`,
-                        {
-                            method: 'PUT',
-                            headers: {
-                                'Authorization': `token ${config.token}`,
-                                'Accept': 'application/vnd.github.v3+json',
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                message: 'Create posts folder',
-                                content: btoa('') // Empty file
-                            })
-                        }
-                    );
-                }
-                return true;
-            } catch (error) {
-                console.error('Error ensuring posts folder exists:', error);
-                return false;
-            }
-        }
-
-        async function createOrUpdatePostFile(post, postSlug, existingSha = null) {
-            // Ensure posts folder exists first
-            await ensurePostsFolderExists();
-
-            const htmlContent = generatePostHTML(post, postSlug);
-            const encodedContent = btoa(unescape(encodeURIComponent(htmlContent)));
-            const fileName = `posts/${postSlug}.html`;
-
-            const body = {
-                message: existingSha ? `Update post: ${post.title}` : `Create post: ${post.title}`,
-                content: encodedContent
-            };
-
-            if (existingSha) {
-                body.sha = existingSha;
-            }
-
-            const response = await fetch(
-                `https://api.github.com/repos/${config.owner}/${config.repo}/contents/${fileName}`,
-                {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `token ${config.token}`,
-                        'Accept': 'application/vnd.github.v3+json',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(body)
-                }
-            );
-
-            return response.ok;
-        }
-
-        async function getExistingPostSha(postSlug) {
-            try {
-                const response = await fetch(
-                    `https://api.github.com/repos/${config.owner}/${config.repo}/contents/posts/${postSlug}.html`,
-                    {
-                        headers: {
-                            'Authorization': `token ${config.token}`,
-                            'Accept': 'application/vnd.github.v3+json'
-                        }
-                    }
-                );
-
-                if (response.ok) {
-                    const data = await response.json();
-                    return data.sha;
-                }
-                return null;
-            } catch (error) {
-                return null;
-            }
-        }
-
-        async function loadPosts() {
-            const { posts } = await getPostsFile();
-            const list = document.getElementById('posts-list');
-
-            if (posts.length === 0) {
-                list.innerHTML = '<p style="color: #71717a;">No posts yet. Add your first post above!</p>';
-                return;
-            }
-
-            posts.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-            list.innerHTML = posts.map((post, index) => `
-                <div class="post-item">
-                    <h3>${post.title}</h3>
-                    <p>${post.description || 'No description'}</p>
-                    <p style="color: #71717a; font-size: 0.85rem;">${new Date(post.date).toLocaleDateString()}</p>
-                    ${post.external_link ? `<p style="font-size: 0.85rem;"><a href="${post.external_link}" target="_blank">${post.external_link}</a></p>` : ''}
-                    <div class="post-actions">
-                        <button class="edit-btn" onclick="editPost(${index})">Edit</button>
-                        <button class="delete-btn" onclick="deletePost(${index})">Delete</button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function editPost(index) {
-            getPostsFile().then(({ posts }) => {
-                const post = posts[index];
-                editingIndex = index;
-
-                document.getElementById('form-title').textContent = 'Edit Post';
-                document.getElementById('title').value = post.title;
-                document.getElementById('description').value = post.description || '';
-                document.getElementById('external-link').value = post.external_link || '';
-                document.getElementById('tags').value = post.tags ? post.tags.join(', ') : '';
-                document.getElementById('content').value = post.content || '';
-                document.getElementById('submit-btn').textContent = 'Update Post';
-
-                updatePreview();
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            });
-        }
-
-        function cancelEdit() {
-            editingIndex = null;
-            document.getElementById('form-title').textContent = 'Add New Post';
-            document.getElementById('submit-btn').textContent = 'Add Post';
-            clearForm();
-        }
-
-        function clearForm() {
-            document.getElementById('title').value = '';
-            document.getElementById('description').value = '';
-            document.getElementById('external-link').value = '';
-            document.getElementById('tags').value = '';
-            document.getElementById('content').value = '';
-            updatePreview();
         }
 
         async function submitPost() {
@@ -1138,68 +700,226 @@ code block
             }
 
             const tags = tagsInput ? tagsInput.split(',').map(t => t.trim()) : [];
-            const postSlug = generateSlug(title);
+            const slug = generateSlug(title);
 
-            const { posts, sha } = await getPostsFile();
+            const postData = {
+                title,
+                description: description || '',
+                external_link: externalLink || '',
+                tags,
+                content: content || '',
+                date: new Date().toISOString(),
+                slug
+            };
 
-            if (editingIndex !== null) {
-                // Update existing post
-                const oldSlug = posts[editingIndex].slug;
-                posts[editingIndex] = {
-                    ...posts[editingIndex],
-                    title,
-                    description: description || null,
-                    external_link: externalLink || null,
-                    tags,
-                    content: content || null,
-                    slug: postSlug
-                };
+            const htmlContent = generatePostHTML(postData);
+            const encodedContent = btoa(unescape(encodeURIComponent(htmlContent)));
 
-                // Get SHA of existing post file
-                const postSha = await getExistingPostSha(postSlug);
-
-                // Create/update the post HTML file
-                const postCreated = await createOrUpdatePostFile(posts[editingIndex], postSlug, postSha);
-
-                if (!postCreated) {
-                    showStatus('Failed to update post file', 'error');
-                    return;
-                }
-
-                // If slug changed, delete old file
-                if (oldSlug !== postSlug) {
-                    await deletePostFile(oldSlug);
-                }
-            } else {
-                // Add new post
-                const newPost = {
-                    title,
-                    description: description || null,
-                    external_link: externalLink || null,
-                    tags,
-                    content: content || null,
-                    date: new Date().toISOString(),
-                    slug: postSlug
-                };
-                posts.push(newPost);
-
-                // Create the post HTML file
-                const postCreated = await createOrUpdatePostFile(newPost, postSlug);
-
-                if (!postCreated) {
-                    showStatus('Failed to create post file', 'error');
-                    return;
+            // Check if editing and get SHA
+            let sha = null;
+            if (editingSlug) {
+                const existingResponse = await fetch(
+                    `https://api.github.com/repos/${config.owner}/${config.repo}/contents/posts/${editingSlug}.html`,
+                    {
+                        headers: {
+                            'Authorization': `token ${config.token}`,
+                            'Accept': 'application/vnd.github.v3+json'
+                        }
+                    }
+                );
+                if (existingResponse.ok) {
+                    const data = await existingResponse.json();
+                    sha = data.sha;
                 }
             }
 
-            const success = await savePostsFile(posts, sha);
+            const body = {
+                message: editingSlug ? `Update post: ${title}` : `Create post: ${title}`,
+                content: encodedContent
+            };
 
-            if (success) {
-                showStatus(editingIndex !== null ? 'Post updated successfully!' : 'Post added successfully!', 'success');
-                cancelEdit();
+            if (sha) {
+                body.sha = sha;
+            }
+
+            try {
+                const response = await fetch(
+                    `https://api.github.com/repos/${config.owner}/${config.repo}/contents/posts/${slug}.html`,
+                    {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `token ${config.token}`,
+                            'Accept': 'application/vnd.github.v3+json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(body)
+                    }
+                );
+
+                if (response.ok) {
+                    // If slug changed, delete old file
+                    if (editingSlug && editingSlug !== slug) {
+                        await deletePostFile(editingSlug);
+                    }
+
+                    showStatus(editingSlug ? 'Post updated successfully!' : 'Post created successfully!', 'success');
+                    cancelEdit();
+                    loadPosts();
+                } else {
+                    const error = await response.json();
+                    showStatus('Failed to save post: ' + (error.message || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                showStatus('Failed to save post: ' + error.message, 'error');
+            }
+        }
+
+        async function loadPosts() {
+            const list = document.getElementById('posts-list');
+            list.innerHTML = 'Loading...';
+
+            try {
+                const response = await fetch(
+                    `https://api.github.com/repos/${config.owner}/${config.repo}/contents/posts`,
+                    {
+                        headers: {
+                            'Authorization': `token ${config.token}`,
+                            'Accept': 'application/vnd.github.v3+json'
+                        }
+                    }
+                );
+
+                if (!response.ok) {
+                    list.innerHTML = '<p style="color: #71717a;">No posts yet. Create your first post above!</p>';
+                    return;
+                }
+
+                const files = await response.json();
+                const htmlFiles = files.filter(f => f.name.endsWith('.html'));
+
+                if (htmlFiles.length === 0) {
+                    list.innerHTML = '<p style="color: #71717a;">No posts yet. Create your first post above!</p>';
+                    return;
+                }
+
+                const posts = await Promise.all(
+                    htmlFiles.map(async (file) => {
+                        const contentResponse = await fetch(file.download_url);
+                        const html = await contentResponse.text();
+
+                        const titleMatch = html.match(/<title>(.*?) - My Blog<\/title>/);
+                        const dateMatch = html.match(/data-date="([^"]+)"/);
+                        const descMatch = html.match(/data-description="([^"]*)"/);
+                        const linkMatch = html.match(/data-external-link="([^"]*)"/);
+
+                        return {
+                            title: titleMatch ? titleMatch[1] : file.name.replace('.html', ''),
+                            date: dateMatch ? dateMatch[1] : '',
+                            description: descMatch ? descMatch[1] : '',
+                            external_link: linkMatch ? linkMatch[1] : '',
+                            slug: file.name.replace('.html', '')
+                        };
+                    })
+                );
+
+                posts.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                list.innerHTML = posts.map(post => `
+                    <div class="post-item">
+                        <h3>${post.title}</h3>
+                        <p>${post.description || 'No description'}</p>
+                        <p style="color: #71717a; font-size: 0.85rem;">${new Date(post.date).toLocaleDateString()}</p>
+                        ${post.external_link ? `<p style="font-size: 0.85rem;"><a href="${post.external_link}" target="_blank">${post.external_link}</a></p>` : ''}
+                        <div class="post-actions">
+                            <button class="edit-btn" onclick='editPost("${post.slug}")'>Edit</button>
+                            <button class="delete-btn" onclick='deletePost("${post.slug}")'>Delete</button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                list.innerHTML = '<p style="color: #dc2626;">Error loading posts. Check your configuration.</p>';
+            }
+        }
+
+        async function editPost(slug) {
+            try {
+                const response = await fetch(
+                    `https://api.github.com/repos/${config.owner}/${config.repo}/contents/posts/${slug}.html`,
+                    {
+                        headers: {
+                            'Authorization': `token ${config.token}`,
+                            'Accept': 'application/vnd.github.v3+json'
+                        }
+                    }
+                );
+
+                if (response.ok) {
+                    const file = await response.json();
+                    const contentResponse = await fetch(file.download_url);
+                    const html = await contentResponse.text();
+
+                    const titleMatch = html.match(/<title>(.*?) - My Blog<\/title>/);
+                    const dateMatch = html.match(/data-date="([^"]+)"/);
+                    const tagsMatch = html.match(/data-tags="([^"]*)"/);
+                    const descMatch = html.match(/data-description="([^"]*)"/);
+                    const linkMatch = html.match(/data-external-link="([^"]*)"/);
+                    const contentMatch = html.match(/<div class="post-content">([\s\S]*?)<\/div>/);
+
+                    editingSlug = slug;
+
+                    document.getElementById('form-title').textContent = 'Edit Post';
+                    document.getElementById('title').value = titleMatch ? titleMatch[1] : '';
+                    document.getElementById('description').value = descMatch ? descMatch[1] : '';
+                    document.getElementById('external-link').value = linkMatch ? linkMatch[1] : '';
+                    document.getElementById('tags').value = tagsMatch && tagsMatch[1] ? tagsMatch[1] : '';
+
+                    // Try to extract markdown from HTML (approximate)
+                    if (contentMatch) {
+                        // This is a rough conversion - won't be perfect
+                        let markdown = contentMatch[1]
+                            .replace(/<h1>(.*?)<\/h1>/g, '# $1\n\n')
+                            .replace(/<h2>(.*?)<\/h2>/g, '## $1\n\n')
+                            .replace(/<h3>(.*?)<\/h3>/g, '### $1\n\n')
+                            .replace(/<p>(.*?)<\/p>/g, '$1\n\n')
+                            .replace(/<strong>(.*?)<\/strong>/g, '**$1**')
+                            .replace(/<em>(.*?)<\/em>/g, '*$1*')
+                            .replace(/<code>(.*?)<\/code>/g, '`$1`');
+                        document.getElementById('content').value = markdown;
+                    } else {
+                        document.getElementById('content').value = '';
+                    }
+
+                    document.getElementById('submit-btn').textContent = 'Update Post';
+                    updatePreview();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            } catch (error) {
+                showStatus('Failed to load post for editing', 'error');
+            }
+        }
+
+        function cancelEdit() {
+            editingSlug = null;
+            document.getElementById('form-title').textContent = 'Add New Post';
+            document.getElementById('submit-btn').textContent = 'Add Post';
+            document.getElementById('title').value = '';
+            document.getElementById('description').value = '';
+            document.getElementById('external-link').value = '';
+            document.getElementById('tags').value = '';
+            document.getElementById('content').value = '';
+            updatePreview();
+        }
+
+        async function deletePost(slug) {
+            if (!confirm('Are you sure you want to delete this post?')) return;
+
+            const deleted = await deletePostFile(slug);
+
+            if (deleted) {
+                showStatus('Post deleted successfully!', 'success');
                 loadPosts();
             } else {
-                showStatus('Failed to save post index. Check your token and permissions.', 'error');
+                showStatus('Failed to delete post', 'error');
             }
         }
 
@@ -1217,7 +937,7 @@ code block
 
                 if (response.ok) {
                     const data = await response.json();
-                    await fetch(
+                    const deleteResponse = await fetch(
                         `https://api.github.com/repos/${config.owner}/${config.repo}/contents/posts/${slug}.html`,
                         {
                             method: 'DELETE',
@@ -1232,62 +952,12 @@ code block
                             })
                         }
                     );
+                    return deleteResponse.ok;
                 }
+                return false;
             } catch (error) {
-                console.error('Error deleting post file:', error);
-            }
-        }
-
-        async function savePostsFile(posts, sha) {
-            const content = JSON.stringify({ posts }, null, 2);
-            const encodedContent = btoa(unescape(encodeURIComponent(content)));
-
-            const body = {
-                message: sha ? 'Update posts' : 'Create posts file',
-                content: encodedContent
-            };
-
-            if (sha) {
-                body.sha = sha;
-            }
-
-            const response = await fetch(
-                `https://api.github.com/repos/${config.owner}/${config.repo}/contents/${config.postsFile}`,
-                {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `token ${config.token}`,
-                        'Accept': 'application/vnd.github.v3+json',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(body)
-                }
-            );
-
-            return response.ok;
-        }
-
-        async function deletePost(index) {
-            if (!confirm('Are you sure you want to delete this post?')) return;
-
-            const { posts, sha } = await getPostsFile();
-            const post = posts[index];
-
-            // Delete the post HTML file
-            if (post.slug) {
-                await deletePostFile(post.slug);
-            }
-
-            // Remove from posts array
-            posts.splice(index, 1);
-
-            const success = await savePostsFile(posts, sha);
-
-            if (success) {
-                showStatus('Post deleted successfully!', 'success');
-                loadPosts();
-            } else {
-                showStatus('Failed to delete post', 'error');
+                console.error('Error deleting post:', error);
+                return false;
             }
         }
 

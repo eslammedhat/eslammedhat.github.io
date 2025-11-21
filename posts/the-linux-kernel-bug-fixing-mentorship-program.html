@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Linux kernel Bug Fixing mentorship program. - My Blog</title>
-    <meta name="post-date" content="2025-11-21T14:54:12.714Z" data-date="2025-11-21T14:54:12.714Z">
+    <meta name="post-date" content="2025-11-21T17:25:05.943Z" data-date="2025-11-21T17:25:05.943Z">
     <meta name="post-tags" content="linux,kernel" data-tags="linux,kernel">
     <meta name="post-description" content="My experience as a mentee." data-description="My experience as a mentee.">
     <meta name="post-external-link" content="" data-external-link="">
@@ -80,16 +80,43 @@
         </div>
         
         <div class="post-content"><h2>Introduction:</h2>
-<p>Hello folks, in this article I&#39;ll talk about my experience in the linux kernel mentorship program.</p>
+<p>Hello folks,
+The linux kernel is a massive project. and has been going on for almost 34 years. I always thought how cool it would be to have my name among the many contributions.
+In this article I&#39;ll talk about my experience in the linux kernel mentorship program, how I applied, the experience during these months of the program, and what kind of contributions i did</p>
 <h2>Application:</h2>
 <p>I found out about the program through linkedin.
-I applied through the linux foundation mentorship page on 2025 summer round. So, keep an eye out for when the program opens up again [1]. Also, it&#39;s a chance to explore other projects provided by the linux foundation.
-The program is led by Shuah Khan [2] .It&#39;s unpaid. and it clearly states that. It does not hold your hand. And you will gain insight and mentorship on contributing to the linux kernel code base.
-![Screenshot from 2025-11-21 16-53-07.png](<a href="https://raw.githubusercontent.com/eslammedhat/eslammedhat.github.io/main/images/1763736819048-Screenshot">https://raw.githubusercontent.com/eslammedhat/eslammedhat.github.io/main/images/1763736819048-Screenshot</a> from 2025-11-21 16-53-07.png)</p>
+I applied through the linux foundation mentorship page on 2025 summer round[1]. So, keep an eye out for when the program opens up again. Also, it&#39;s a chance to explore other projects provided by the linux foundation.
+The program is led by Shuah Khan [2] .It&#39;s unpaid. and it clearly states that. It does not hold your hand. And you will gain insight and mentorship on contributing to the linux kernel code base.</p>
 <h2>My Experience:</h2>
-<p>I got accepted </p>
-<p>[1] <a href="url">https://mentorship.lfx.linuxfoundation.org/#projects_all </a>
-[2]</p>
+<p>Once applied i got assigned few tasks to complete as a pre-requeset to for acceptance.
+Nothing scary, but it&#39;s required just to make sure you grasp the basics.
+a couple of weeks later and, hooray. I got accepted into the program.
+From there, I had a up to 6(for part-time mentees) or (3 months for  months to understand and get me hands dirty into the kernel.
+The goal was to submit minimum of 5 accepted <em>non-trivial</em> patches into the kernel.
+I had many question so did my mentor mates. thankfully shuah conducted a office hours weekly meeting in it we would discuss how to tackle different question we had.
+Unfortunately because of my full-time job i couldn&#39;t attend some of them. but I could ask my questions on the mailing list or via discord.</p>
+<h2>My contributions</h2>
+<p>So far H have between 7-9 accepted batches. I would categorize them as follows:</p>
+<h3>1- simple</h3>
+<p>To get my feet wet into the kernel i started with simple fixes to spelling mistakes in documentation as so on (just to get comfortable with the process).</p>
+<h3>2- simple DRM changes</h3>
+<p>The DRM documentation list some work to be done form drm based drivers [3]. a nice thing a bout that is some are suited for kernel noobs like I am. It&#39;s a good place to start if you&#39;re interrested in DRM.</p>
+<h3>3- backporting</h3>
+<p>Fixes are usually ported to the stable tree. and applied to one or more of the supported stable branches. However, for different reasons it my be missed. so it a good chance to do the leg work for that. where to find that kind of work ? well a good source would be syzbot[4].</p>
+<h3>4- bug hunting</h3>
+<p>I mainly resorted to two sources  for finding bugs.The first was syzbot[4], and the second was coverity[5]. you can look at these links to help you get started [6][7].</p>
+<h2>Final thoughts</h2>
+<p>The program is a great opportunity to get started as a kernel contributor whether you&#39;re a newbie or have experience doing kernel related work but never got the chance to go through mainstream process of the linux kernel community.
+However expereinced once is it&#39;s a good chance to ask questions to experienced kernle developers who understand the process very well.
+So I would encourage you to apply.</p>
+<h2>Links</h2>
+<p>[1] <a href="url">https://mentorship.lfx.linuxfoundation.org/project/8822c262-9795-4c84-a7c8-43346e2f5974 </a></p>
+<p>[2] <a href="url">https://mentorship.lfx.linuxfoundation.org/mentor/5b5c6ac7-5735-4ed6-9666-4ddd0a140c0c </a></p>
+<p>[3] <a href="url">https://docs.kernel.org/gpu/todo.html</a></p>
+<p>[4] <a href="url">https://syzkaller.appspot.com</a></p>
+<p>[5] <a href="url">https://scan.coverity.com/</a></p>
+<p>[6] <a href="url">https://hackerbikepacker.com/syzbot</a></p>
+<p>[7] <a href="url">https://youtu.be/y0__yxM0New?si=f-pq6X-EVnexCY6N</a></p>
 </div>
         
             <div class="tags">

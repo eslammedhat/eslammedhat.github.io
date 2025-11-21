@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>hello world - My Blog</title>
+    <meta name="post-date" content="2025-11-21T01:38:42.640Z" data-date="2025-11-21T01:38:42.640Z">
+    <meta name="post-tags" content="" data-tags="">
+    <meta name="post-description" content="hello world" data-description="hello world">
+    <meta name="post-external-link" content="" data-external-link="">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; line-height: 1.7; color: #e4e4e7; background: #0a0a0a; }
+        header { padding: 4rem 2rem 2rem; text-align: center; border-bottom: 1px solid #27272a; }
+        header h1 { font-size: 2rem; margin-bottom: 0.5rem; font-weight: 600; color: #fafafa; }
+        header p { font-size: 1rem; color: #a1a1aa; }
+        nav { padding: 2rem; text-align: center; }
+        nav ul { list-style: none; display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; }
+        nav a { text-decoration: none; color: #a1a1aa; font-size: 0.95rem; transition: color 0.2s; }
+        nav a:hover { color: #fafafa; }
+        .container { max-width: 700px; margin: 0 auto; padding: 2rem; }
+        .post-header { margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid #27272a; }
+        .post-header h1 { color: #fafafa; font-size: 2rem; margin-bottom: 1rem; font-weight: 600; }
+        .post-meta { color: #71717a; font-size: 0.9rem; margin-bottom: 1rem; }
+        .post-description { color: #a1a1aa; font-size: 1.05rem; margin-bottom: 1rem; }
+        .external-link-banner { background: #18181b; border: 1px solid #27272a; border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem; text-align: center; }
+        .external-link-banner p { color: #a1a1aa; margin-bottom: 1rem; }
+        .external-link-banner a { display: inline-block; background: #fafafa; color: #0a0a0a; padding: 0.75rem 1.5rem; border-radius: 6px; text-decoration: none; font-weight: 600; transition: background 0.2s; }
+        .external-link-banner a:hover { background: #e4e4e7; }
+        .post-content { color: #a1a1aa; line-height: 1.8; margin-bottom: 2rem; }
+        .post-content h1, .post-content h2, .post-content h3, .post-content h4 { color: #fafafa; margin-top: 2rem; margin-bottom: 1rem; }
+        .post-content h1 { font-size: 1.8rem; border-bottom: 1px solid #27272a; padding-bottom: 0.5rem; }
+        .post-content h2 { font-size: 1.5rem; }
+        .post-content h3 { font-size: 1.3rem; }
+        .post-content h4 { font-size: 1.1rem; }
+        .post-content p { margin-bottom: 1.5rem; }
+        .post-content img { max-width: 100%; height: auto; border-radius: 8px; margin: 2rem 0; }
+        .post-content ul, .post-content ol { margin-left: 1.5rem; margin-bottom: 1.5rem; }
+        .post-content li { margin-bottom: 0.5rem; }
+        .post-content code { background: #27272a; padding: 0.2rem 0.4rem; border-radius: 3px; font-size: 0.9rem; font-family: 'Courier New', monospace; }
+        .post-content pre { background: #18181b; border: 1px solid #27272a; border-radius: 6px; padding: 1.5rem; overflow-x: auto; margin-bottom: 1.5rem; }
+        .post-content pre code { background: none; padding: 0; }
+        .post-content blockquote { border-left: 3px solid #27272a; padding-left: 1.5rem; margin: 1.5rem 0; color: #71717a; font-style: italic; }
+        .post-content a { color: #fafafa; text-decoration: underline; }
+        .post-content a:hover { color: #a1a1aa; }
+        .tags { display: flex; gap: 0.75rem; margin-top: 2rem; flex-wrap: wrap; padding-top: 2rem; border-top: 1px solid #27272a; }
+        .tag { color: #71717a; font-size: 0.85rem; }
+        .back-link { display: inline-block; color: #a1a1aa; text-decoration: none; margin-bottom: 2rem; transition: color 0.2s; }
+        .back-link:hover { color: #fafafa; }
+        footer { text-align: center; padding: 3rem 2rem; margin-top: 2rem; border-top: 1px solid #27272a; color: #71717a; font-size: 0.9rem; }
+        footer a { color: #a1a1aa; text-decoration: none; transition: color 0.2s; }
+        footer a:hover { color: #fafafa; }
+        @media (max-width: 768px) {
+            header { padding: 3rem 1.5rem 1.5rem; }
+            header h1 { font-size: 1.75rem; }
+            .container { padding: 1.5rem; }
+            .post-header h1 { font-size: 1.75rem; }
+            nav ul { gap: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>My Blog</h1>
+        <p>Thoughts and ideas</p>
+    </header>
+    <nav>
+        <ul>
+            <li><a href="../index.html">Home</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="../admin.html">Admin</a></li>
+        </ul>
+    </nav>
+    <div class="container">
+        <a href="../index.html" class="back-link">← Back to home</a>
+        <div class="post-header">
+            <h1>hello world</h1>
+            <div class="post-meta">November 21, 2025</div>
+            <p class="post-description">hello world</p>
+        </div>
+        
+        <div class="post-content"><p>hello worldhello worldhello worldhello worldhello worldhello world</p>
+</div>
+        
+    </div>
+    <footer>
+        <p>© 2025 My Blog</p>
+        <p><a href="https://github.com/yourusername">GitHub</a> · <a href="mailto:your.email@example.com">Email</a></p>
+    </footer>
+</body>
+</html>
